@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משחק טריוויה על לינקדאין</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #0077B5, #00A0DC);
+            color: #333;
+        }
+        #game-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            transition: all 0.3s ease;
+        }
+        button {
+            margin: 10px;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #0077B5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background-color: #00A0DC;
+            transform: scale(1.05);
+        }
+        #result, #explanation {
+            margin-top: 20px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        #score {
+            font-size: 18px;
+            margin-top: 20px;
+            color: #0077B5;
+        }
+        @keyframes celebrate {
+            0% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-5deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+            75% { transform: scale(1.1) rotate(-5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .celebrate {
+            animation: celebrate 1s ease-in-out;
+        }
+        #question {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #0077B5;
+        }
+        #start-btn, #next-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #00A0DC;
+        }
+        .hidden {
+            display: none !important;
+        }
+        #music-controls {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>משחק טריוויה על לינקדאין</h1>
+        <button id="start-btn">התחל משחק</button>
+        <div id="game-area" class="hidden">
+            <div id="question"></div>
+            <button id="true-btn">נכון</button>
+            <button id="false-btn">לא נכון</button>
+            <div id="result"></div>
+            <div id="explanation"></div>
+            <button id="next-btn" class="hidden">המשך</button>
+            <div id="score">ניקוד: 0</div>
+        </div>
+    </div>
+    <div id="music-controls">
+        <button id="toggle-music">השתק/הפעל מוזיקה</button>
+    </div>
+    <audio id="background-music" loop>
+        <source src="sound.mp3" type="audio/mpeg">
+        הדפדפן שלך אינו תומך בתג האודיו.
+    </audio>
+
+    <script>
+        const questions = [
+            {
+                question: "לינקדאין מתאימה רק למחפשי עבודה עם ניסיון",
+                answer: false,
+                explanation: "הרשת מתאימה לחשיפה ומיצוב אישי בתחום גם לחסרי ניסיון ויכולה ליצור הזדמנויות ראשונות בתעשייה"
+            },
+            {
+                question: "חייבים להעלות תוכן ללינקדאין אם רוצים להצליח שם",
+                answer: false,
+                explanation: "אפשר לבחור להכין פרופיל מצוין ולעבוד עם שליחת הודעות אישיות ותגובות. העלאת תוכן יכולה להוביל לחשיפה מעולה אבל לא חייבים להיות יוצרי תוכן כדי למצוא עבודה"
+            },
+            {
+                question: "לינקדאין רשת חברתית משעממת",
+                answer: false,
+                explanation: "אם תהיו משעממים יהיה לכם משעמם 😊 חשוב לעקוב אחרי אנשים מעניינים, למצוא את בעלי התפקיד שרלוונטיים לכם ולחפש גם ליצור תוכן מעניין כדי שלא תרגישו שם שיעמום"
+            },
+            {
+                question: "לינקדאין דורשת חשיפה של החיים האישיים שלנו תוך ויתור על פרטיות",
+                answer: false,
+                explanation: "כל אחד יכול לבחור מה לשתף ומה לא, והיתרון של הרשת הוא שאפשר להתייחס לפן המקצועי בלבד בלי להתייחס לחיים אישיים"
+            },
+            {
+                question: "אפשר להתחיל לעבוד עם לינקדאין רק אחרי שהפרופיל מושלם",
+                answer: false,
+                explanation: "עדיף פרופיל חלקי ולא מושלם, מאשר לא להקים פרופיל בכלל או להימנע מפעילות בגלל פרפקציוניזם. גם פרופיל חלקי יכול להוביל לתוצאות יפות"
+            },
+            {
+                question: "אפשר להתחיל להשתמש בפרופיל הלינקדאין שלנו עוד לפני שמחפשים ממש עבודה",
+                answer: true,
+                explanation: "אפילו נכון מאוד, חשוב שיהיה פרופיל פעיל ואיכותי כבר לפני שמתחילים לחפש, כדי שהתוצאות יגיעו מהר יותר ברגע שיוצאים לדרך"
+            },
+            {
+                question: "לינקדאין יכולה להיות מאוד יעילה לחיפוש עבודה גם בלי לשלם על מנוי",
+                answer: true,
+                explanation: "כתיבת פוסטים ותגובות הן בחינם, וניתן לשלוח הודעות לבעלי תפקיד בצורה ממוקדת עד שמגיעים למגבלה, ולמצוא עבודה בחינם"
+            },
+            {
+                question: "הכל מזוייף בלינקדאין, זו רשת לא אותנטית",
+                answer: false,
+                explanation: "גם אם יש תחושה כזו ממשתמשים מסויימים, אפשר לשתף תוכן אמיתי וליצור חיבורים אותנטיים עם אנשים שמתחברים לתפיסה שלנו"
+            },
+            {
+                question: "אפשר להגיע לתוצאות טובות בלינקדאין בזמן השקעה מועט",
+                answer: true,
+                explanation: "גם פרסום פוסט פעם בשבוע והקדשת זמן מרוכז של פעם בתקופה לשליחת הודעות אישיות, יכולים להביא לתוצאות"
+            },
+            {
+                question: "סוג האנשים שאנחנו מתחברים אליהם בלינקדאין פחות קריטי מכמות החיבורים",
+                answer: false,
+                explanation: "איכות החיבורים, התפקיד של האנשים שאנחנו מתחברים אליהם ועולם התוכן – הם קריטיים כדי להגיע למטרות שלנו ויותר חשובים מכמות החיבורים."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+
+        const startBtn = document.getElementById('start-btn');
+        const gameArea = document.getElementById('game-area');
+        const questionElement = document.getElementById('question');
+        const trueBtn = document.getElementById('true-btn');
+        const falseBtn = document.getElementById('false-btn');
+        const resultElement = document.getElementById('result');
+        const explanationElement = document.getElementById('explanation');
+        const scoreElement = document.getElementById('score');
+        const nextBtn = document.getElementById('next-btn');
+        const backgroundMusic = document.getElementById('background-music');
+        const toggleMusicBtn = document.getElementById('toggle-music');
+
+        startBtn.addEventListener('click', startGame);
+        trueBtn.addEventListener('click', () => checkAnswer(true));
+        falseBtn.addEventListener('click', () => checkAnswer(false));
+        nextBtn.addEventListener('click', showQuestion);
+        toggleMusicBtn.addEventListener('click', toggleMusic);
+
+        function startGame() {
+            startBtn.classList.add('hidden');
+            gameArea.classList.remove('hidden');
+            showQuestion();
+            backgroundMusic.play();
+        }
+
+        function showQuestion() {
+            nextBtn.classList.add('hidden');
+            resultElement.style.opacity = '0';
+            explanationElement.style.opacity = '0';
+
+            if (currentQuestion < questions.length) {
+                questionElement.textContent = questions[currentQuestion].question;
+                trueBtn.disabled = false;
+                falseBtn.disabled = false;
+                trueBtn.classList.remove('hidden');
+                falseBtn.classList.remove('hidden');
+            } else {
+                endGame();
+            }
+        }
+
+        function checkAnswer(answer) {
+            trueBtn.disabled = true;
+            falseBtn.disabled = true;
+            const correct = questions[currentQuestion].answer === answer;
+            if (correct) {
+                score++;
+                resultElement.textContent = 'צדקת!';
+                resultElement.style.color = 'green';
+            } else {
+                resultElement.textContent = 'טעות.';
+                resultElement.style.color = 'red';
+            }
+            explanationElement.textContent = questions[currentQuestion].explanation;
+            scoreElement.textContent = `ניקוד: ${score}`;
+            
+            resultElement.style.opacity = '1';
+            explanationElement.style.opacity = '1';
+            
+            currentQuestion++;
+            nextBtn.classList.remove('hidden');
+            trueBtn.classList.add('hidden');
+            falseBtn.classList.add('hidden');
+        }
+
+        function endGame() {
+            questionElement.textContent = 'המשחק הסתיים!';
+            trueBtn.classList.add('hidden');
+            falseBtn.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            resultElement.textContent = '';
+            explanationElement.textContent = '';
+            scoreElement.textContent = `ניקוד סופי: ${score} מתוך ${questions.length}`;
+            scoreElement.classList.add('celebrate');
+            const congratsMessage = document.createElement('div');
+            congratsMessage.textContent = 'כל הכבוד!';
+            congratsMessage.style.fontSize = '24px';
+            congratsMessage.style.marginTop = '20px';
+            congratsMessage.style.color = '#0077B5';
+            document.getElementById('game-container').appendChild(congratsMessage);
+        }
+
+        function toggleMusic() {
+            if (backgroundMusic.paused) {
+                backgroundMusic.play();
+                toggleMusicBtn.textContent = 'השתק מוזיקה';
+            } else {
+                backgroundMusic.pause();
+                toggleMusicBtn.textContent = 'הפעל מוזיקה';
+            }
+        }
+    </script>
+</body>
+</html>
